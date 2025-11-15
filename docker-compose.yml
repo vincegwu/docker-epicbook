@@ -1,0 +1,76 @@
+version: '3.8'
+services:
+  epicbook:
+    build: ./epicbook
+    container_name: epicbook_app
+    restart: always
+    ports:  
+      - "${PORT}:8080"
+    environment:
+      PORT: ${PORT}
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.epicbook.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.epicbook.entrypoints=web"
+      - "traefik.http.services.epicbook.loadbalancer.server.port=8080"
+
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - epicbooknet
+
+  db:
+    image: mysql:8.1
+    container_name: epicbook_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_PORT: ${DB_PORT}
+
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init_db/:/docker-entrypoint-initdb.d/
+
+    networks:
+      - epicbooknet
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+
+  traefik:
+    image: traefik:v3.6
+    container_name: epicbook_proxy
+    restart: always 
+
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--api.dashboard=true"
+
+    ports:
+      - "80:80"
+      - "8080:8080"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - epicbooknet
+
+volumes:
+  db_data:
+
+networks:
+  epicbooknet:
+    driver: bridge
