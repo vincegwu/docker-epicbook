@@ -10,7 +10,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
-      CORS_ORIGIN: ${CORS_ORIGIN}
+      #CORS_ORIGIN: ${CORS_ORIGIN}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.epicbook.rule=PathPrefix(`/`)"

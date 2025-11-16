@@ -7,7 +7,7 @@ const exphbs = require("express-handlebars");
 const sequelize = require("./config/database"); // Sequelize instance
 const db = require("./models"); // Sequelize models
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 const app = express();
 
